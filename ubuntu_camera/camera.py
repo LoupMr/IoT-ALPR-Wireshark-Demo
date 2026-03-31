@@ -1,11 +1,12 @@
 import time
 import requests
 import random
+import json  # <--- Added this import
 
 # ==========================================
 # CONFIGURATION - YOU MUST CHANGE THIS IP
 # ==========================================
-KALI_VM_IP = "10.61.80.210" # <--- ENTER KALI IP HERE
+KALI_VM_IP = "10.61.80.210" # Your Kali IP is already set!
 URL = "http://{}:80/api/v1/plate-capture".format(KALI_VM_IP)
 
 def simulate_iot_camera():
@@ -15,6 +16,9 @@ def simulate_iot_camera():
     print("-" * 40)
     
     mock_plates = ["XYZ-8902", "ABC-1234", "FLK-9981", "STEAL-01", "GHT-5542", "NQR-7711"]
+    
+    # We must explicitly tell the server we are sending JSON data
+    headers = {'Content-type': 'application/json'}
     
     try:
         while True:
@@ -29,8 +33,11 @@ def simulate_iot_camera():
             print("[*] Target Acquired. Transmitting plate [{}] in plain text...".format(plate_data['plate_number']))
             
             try:
-                # Send the unencrypted data over the network
-                response = requests.post(URL, json=plate_data, timeout=3)
+                # Convert the dictionary to a JSON string using json.dumps()
+                # and send it using 'data=' instead of 'json='
+                json_payload = json.dumps(plate_data)
+                response = requests.post(URL, data=json_payload, headers=headers, timeout=3)
+                
                 if response.status_code == 200:
                     print("    -> Transmission successful.")
             except requests.exceptions.RequestException as e:
